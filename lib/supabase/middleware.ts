@@ -43,6 +43,7 @@ export async function updateSession(request: NextRequest) {
     pathname === '/' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/privacy-policy') ||
+    pathname.startsWith('/delete-account') ||
     pathname.startsWith('/auth/callback')
 
   if (!user && !isPublic) {

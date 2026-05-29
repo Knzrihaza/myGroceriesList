@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import type { App, Rule } from '@/lib/types'
+import type { App, Rule, LandingConfig, NavbarData, HeroData, AppStoreData, CtaData, FooterData, DeleteAccountConfig } from '@/lib/types'
 
 const useSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL)
 
@@ -170,4 +170,109 @@ export async function upsertApp(
   store.app = { ...store.app, ...appData }
   await writeJson(store)
   return store.app
+}
+
+// ── Default landing config seed ───────────────────────────────────────────────
+
+export const DEFAULT_LANDING_CONFIG = {
+  primary_color: '#6366f1',
+  accent_color: '#0f172a',
+  font: 'inter' as const,
+  navbar_enabled: true,
+  hero_enabled: true,
+  trust_badges_enabled: false,
+  features_enabled: true,
+  stats_enabled: false,
+  screenshots_enabled: false,
+  steps_enabled: false,
+  app_store_enabled: false,
+  cta_enabled: true,
+  navbar: { links: [], cta_text: 'Get Started', cta_url: '#' } as NavbarData,
+  hero: {
+    headline: 'Your app name',
+    subheadline: 'A short description of what your app does.',
+    cta_text: 'Get Started',
+    cta_url: '#',
+    bg_style: 'gradient' as const,
+  } as HeroData,
+  trust_badges: [],
+  features: [
+    { icon: 'ShieldCheck', title: 'Feature one',   description: 'Describe this feature.' },
+    { icon: 'Zap',         title: 'Feature two',   description: 'Describe this feature.' },
+    { icon: 'Globe',       title: 'Feature three', description: 'Describe this feature.' },
+  ],
+  stats: [],
+  screenshots: [],
+  steps: [],
+  app_store: { label: 'Download now' } as AppStoreData,
+  cta: { headline: 'Ready to get started?', primary_text: 'Get Started', primary_url: '#' } as CtaData,
+  footer: {
+    copyright: `© ${new Date().getFullYear()} Your App`,
+    social_links: [],
+    columns: [],
+  } as FooterData,
+}
+
+// ── Landing config ────────────────────────────────────────────────────────────
+
+export async function getLandingConfig(): Promise<LandingConfig | null> {
+  if (useSupabase) {
+    const app = await getApp()
+    const sb = await createServerClient()
+    const { data } = await sb
+      .from('landing_config')
+      .select('*')
+      .eq('app_id', app.id)
+      .single()
+    return (data as LandingConfig) ?? null
+  }
+  return null
+}
+
+export async function upsertLandingConfig(
+  updates: Partial<Omit<LandingConfig, 'id' | 'app_id' | 'created_at'>>
+): Promise<LandingConfig> {
+  if (!useSupabase) throw new Error('Landing config requires Supabase')
+  const app = await getApp()
+  const sb = await createServerClient()
+  const now = new Date().toISOString()
+  const { data, error } = await sb
+    .from('landing_config')
+    .upsert({ ...DEFAULT_LANDING_CONFIG, ...updates, app_id: app.id, updated_at: now }, { onConflict: 'app_id' })
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return data as LandingConfig
+}
+
+// ── Delete account config ─────────────────────────────────────────────────────
+
+export async function getDeleteAccountConfig(): Promise<DeleteAccountConfig | null> {
+  if (useSupabase) {
+    const app = await getApp()
+    const sb = await createServerClient()
+    const { data } = await sb
+      .from('delete_account_config')
+      .select('*')
+      .eq('app_id', app.id)
+      .single()
+    return (data as DeleteAccountConfig) ?? null
+  }
+  return null
+}
+
+export async function upsertDeleteAccountConfig(
+  updates: Partial<Omit<DeleteAccountConfig, 'id' | 'created_at'>>
+): Promise<DeleteAccountConfig> {
+  if (!useSupabase) throw new Error('Delete account config requires Supabase')
+  const app = await getApp()
+  const sb = await createServerClient()
+  const now = new Date().toISOString()
+  const { data, error } = await sb
+    .from('delete_account_config')
+    .upsert({ ...updates, app_id: app.id, updated_at: now }, { onConflict: 'app_id' })
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return data as DeleteAccountConfig
 }

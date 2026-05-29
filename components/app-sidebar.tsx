@@ -15,7 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, ShieldCheckIcon, Settings2Icon, CircleHelpIcon, CommandIcon } from "lucide-react"
+import { LayoutDashboardIcon, LayoutTemplateIcon, Trash2Icon, ShieldCheckIcon, Settings2Icon, CircleHelpIcon, CommandIcon } from "lucide-react"
 
 type User = { name: string; email: string; avatar: string }
 
@@ -25,6 +25,16 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: <LayoutDashboardIcon />,
+    },
+    {
+      title: "Landing Page",
+      url: "/dashboard/landing",
+      icon: <LayoutTemplateIcon />,
+    },
+    {
+      title: "Delete Account",
+      url: "/dashboard/delete-account",
+      icon: <Trash2Icon />,
     },
     {
       title: "Privacy Policy",
